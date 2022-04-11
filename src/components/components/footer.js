@@ -75,11 +75,9 @@ const footer= () => (
                                 </div>
                                 <div className="de-flex-col">
                                     <div className="social-icons">
-                                        <span onClick={()=> window.open("", "_self")}><i className="fa fa-facebook fa-lg"></i></span>
-                                        <span onClick={()=> window.open("", "_self")}><i className="fa fa-twitter fa-lg"></i></span>
-                                        <span onClick={()=> window.open("", "_self")}><i className="fa fa-linkedin fa-lg"></i></span>
-                                        <span onClick={()=> window.open("", "_self")}><i className="fa fa-pinterest fa-lg"></i></span>
-                                        <span onClick={()=> window.open("", "_self")}><i className="fa fa-rss fa-lg"></i></span>
+                                        <span onClick={()=> window.open("https://www.facebook.com/NFT-Apparel-107829878397641", "_rel")}><i className="fa fa-facebook fa-lg"></i></span>
+                                        <span onClick={()=> window.open("https://twitter.com/NFTApparel1", "_rel")}><i className="fa fa-twitter fa-lg"></i></span>
+                                        <span onClick={()=> window.open("https://www.instagram.com/nftapparel1/", "_rel")}><i className="fa fa-instagram fa-lg"></i></span>
                                     </div>
                                 </div>
                             </div>
