@@ -1,6 +1,6 @@
 import React from "react";
 import { useEthers } from "@usedapp/core";
-import MakeQuerablePromise from "../../contractUtils/querable-promise";
+import MakeQuerablePromise from "../../utils/querable-promise";
 import { useDispatch, useSelector } from "react-redux";
 import { setIsWalletConnected } from "../../redux/action/master-data-actions";
 
