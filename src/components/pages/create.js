@@ -170,7 +170,7 @@ export default function Createpage() {
                   <img className="lazy" src="./img/author/author-1.jpg" alt="" />
                   <i className="fa fa-check"></i>
                 </span>
-              </div>
+              </div>   
               <div className="nft__item_wrap">
                 <span>
                   <img src={(!file && black) || (file && URL.createObjectURL(file))} id="get_file_2" className="lazy nft__item_preview" alt="" />
@@ -193,6 +193,42 @@ export default function Createpage() {
               </div>
             </div>
           </div>
+        </div>
+         <div className="row">
+          <div className="col-lg-7 offset-lg-1 mb-5">
+            <form id="form-create-item" className="form-border" action="#" >
+              <div className="field-set"> 
+                <h1>Liste your nft</h1>
+                <h5>NFT address</h5>
+                <input type="text" name="item_title" className="form-control"  id="item_title"  className="form-control" placeholder="e.g. 'nft address" />
+                <div className="spacer-10"></div>
+
+                <h5>Token Id</h5>
+                <input  name="item_desc" id="item_desc"  className="form-control" placeholder=""></input>
+
+                <div className="spacer-10"></div>
+
+                <h5>Token amount</h5>
+                <input type="text" name="item_price" id="item_price" className="form-control" placeholder="enter price for one item (ETH)" />
+
+                <div className="spacer-10"></div>
+
+                <h5>Price Metis</h5>
+                <input  name="item_desc" id="item_desc"  className="form-control" placeholder=""></input>
+
+                <div className="spacer-10"></div>
+
+                <h5>Price Peak</h5>
+                <input  name="item_desc" id="item_desc"  className="form-control" placeholder=""></input>
+                <div className="spacer-10"></div>
+
+                <h5>Set royalty fee</h5>
+                <input  name="item_desc" id="item_desc"  className="form-control" placeholder=""></input>
+                <div className="spacer-10"></div>              
+                <input type="submit" id="submit" className="btn-main" value={"List NFT"}  />
+              </div>
+            </form>
+          </div>          
         </div>
       </section>
 
