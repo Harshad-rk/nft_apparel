@@ -10,6 +10,8 @@ import { useSelector } from "react-redux";
 import { useNavigate } from "@reach/router";
 import * as Yup from "yup";
 import black from "../../assets/black.jpg";
+import { listTokenToMarketplaceFunc, MarketPlaceContract } from "../../contractUtils/Services/MarketPlace";
+import { utils } from "ethers";
 
 export default function Createpage() {
   const { account } = useEthers();
@@ -60,8 +62,33 @@ export default function Createpage() {
     },
   });
 
+  const ListNFT = useUtilContractFunction(MarketPlaceContract, listTokenToMarketplaceFunc);
+  const formikHandler = useFormik({
+    initialValues: {
+      nftAddres: "",
+      tokenID: "",
+      tokenAmout: "",
+      priceMetis: "",
+      pricePeak: "",
+      setRoyalFee: "",
+    },
+    validationSchema: Yup.object().shape({
+      nftAddres: Yup.string().required("Field required"),
+      tokenID: Yup.string().required("Field required"),
+      tokenAmout: Yup.string().required("Field required"),
+      priceMetis: Yup.string().required("Field required"),
+      pricePeak: Yup.string().required("Field required"),
+      setRoyalFee: Yup.string().required("Field required"),
+    }),
+    onSubmit: (values) => {
+      ListNFT.send(values?.nftAddres, parseInt(values?.tokenID), utils.parseUnits(values?.tokenAmout, 18), utils.parseUnits(values?.priceMetis, 18), utils.parseUnits(values?.pricePeak, 18), Number(values?.setRoyalFee), true);
+    },
+  });
+
   const formikTouch = formik?.touched;
   const formikErr = formik?.errors;
+  const formikHanlderTouch = formikHandler?.touched;
+  const formikHanlderErr = formikHandler?.errors;
 
   const apiKey = "61acfb88c4a44410878c";
   const secretApiKey = "544b05976a5d0e1aefab730e720ae3c49daa2977a25fc636e18242f52db0db65";
@@ -132,7 +159,7 @@ export default function Createpage() {
                 <div className="spacer-single"></div>
 
                 <h5>Title</h5>
-                <input type="text" name="item_title" className="form-control" style={{ border: formikTouch?.name && formikErr?.name && "0.5px solid red" }} id="item_title" value={formik?.values?.name} onChange={(e) => formik.setFieldValue("name", e.target.value)} className="form-control" placeholder="e.g. 'Crypto Funk" />
+                <input type="text" name="item_title" className="form-control" style={{ border: formikTouch?.name && formikErr?.name && "0.5px solid red" }} id="item_title" value={formik?.values?.name} onChange={(e) => formik.setFieldValue("name", e.target.value)} placeholder="e.g. 'Crypto Funk" />
                 <div className="spacer-10"></div>
 
                 <h5>Description</h5>
@@ -170,7 +197,7 @@ export default function Createpage() {
                   <img className="lazy" src="./img/author/author-1.jpg" alt="" />
                   <i className="fa fa-check"></i>
                 </span>
-              </div>   
+              </div>
               <div className="nft__item_wrap">
                 <span>
                   <img src={(!file && black) || (file && URL.createObjectURL(file))} id="get_file_2" className="lazy nft__item_preview" alt="" />
@@ -194,41 +221,44 @@ export default function Createpage() {
             </div>
           </div>
         </div>
-         <div className="row">
+        <div className="row">
           <div className="col-lg-7 offset-lg-1 mb-5">
-            <form id="form-create-item" className="form-border" action="#" >
-              <div className="field-set"> 
-                <h1>Liste your nft</h1>
+            <form id="form-create-item" className="form-border" action="#" onSubmit={formikHandler.handleSubmit}>
+              <div className="field-set">
+                <h1>List your NFT</h1>
                 <h5>NFT address</h5>
-                <input type="text" name="item_title" className="form-control"  id="item_title"  className="form-control" placeholder="e.g. 'nft address" />
+                <input type="text" name="nftAddres" style={{ border: formikHanlderTouch?.nftAddres && formikHanlderErr?.nftAddres && "0.5px solid red" }} id="item_title" value={formikHandler?.values?.nftAddres} onChange={(e) => formikHandler.setFieldValue("nftAddres", e.target.value.trim())} className="form-control" placeholder="e.g. 'nft address" />
                 <div className="spacer-10"></div>
 
                 <h5>Token Id</h5>
-                <input  name="item_desc" id="item_desc"  className="form-control" placeholder=""></input>
+                <input name="tokenID" id="item_desc" style={{ border: formikHanlderTouch?.tokenID && formikHanlderErr?.tokenID && "0.5px solid red" }} value={formikHandler?.values?.tokenID} onChange={(e) => formikHandler.setFieldValue("tokenID", e.target.value.trim())} className="form-control" placeholder=""></input>
 
                 <div className="spacer-10"></div>
 
                 <h5>Token amount</h5>
-                <input type="text" name="item_price" id="item_price" className="form-control" placeholder="enter price for one item (ETH)" />
+                <input type="text" name="tokenAmout" id="item_price" style={{ border: formikHanlderTouch?.tokenAmout && formikHanlderErr?.tokenAmout && "0.5px solid red" }} value={formikHandler?.values?.tokenAmout} onChange={(e) => formikHandler.setFieldValue("tokenAmout", e.target.value.trim())} className="form-control" placeholder="enter price for one item (ETH)" />
 
                 <div className="spacer-10"></div>
 
                 <h5>Price Metis</h5>
-                <input  name="item_desc" id="item_desc"  className="form-control" placeholder=""></input>
+                <input name="priceMetis" id="item_desc" style={{ border: formikHanlderTouch?.priceMetis && formikHanlderErr?.priceMetis && "0.5px solid red" }} value={formikHandler?.values?.priceMetis} onChange={(e) => formikHandler.setFieldValue("priceMetis", e.target.value.trim())} className="form-control" placeholder=""></input>
 
                 <div className="spacer-10"></div>
 
                 <h5>Price Peak</h5>
-                <input  name="item_desc" id="item_desc"  className="form-control" placeholder=""></input>
+                <input name="pricePeak" id="item_desc" style={{ border: formikHanlderTouch?.pricePeak && formikHanlderErr?.pricePeak && "0.5px solid red" }} value={formikHandler?.values?.pricePeak} onChange={(e) => formikHandler.setFieldValue("pricePeak", e.target.value.trim())} className="form-control" placeholder=""></input>
                 <div className="spacer-10"></div>
 
                 <h5>Set royalty fee</h5>
-                <input  name="item_desc" id="item_desc"  className="form-control" placeholder=""></input>
-                <div className="spacer-10"></div>              
-                <input type="submit" id="submit" className="btn-main" value={"List NFT"}  />
+                <input name="setRoyalFee" id="item_desc" style={{ border: formikHanlderTouch?.setRoyalFee && formikHanlderErr?.setRoyalFee && "0.5px solid red" }} value={formikHandler?.values?.setRoyalFee} onChange={(e) => formikHandler.setFieldValue("setRoyalFee", e.target.value.trim())} className="form-control" placeholder=""></input>
+                <div className="spacer-10"></div>
+                {(formikHanlderTouch?.nftAddres || formikHanlderTouch?.tokenID || formikHanlderTouch?.tokenAmout || formikHanlderTouch?.priceMetis || formikHanlderTouch?.pricePeak || formikHanlderTouch?.setRoyalFee) && account && <h5 style={{ color: "red" }}>Inputs are required</h5>}
+                <div className="spacer-10"></div>
+                {isWalletConnected && <input type="submit" id="submit" className="btn-main" value={"List NFT"} />}
+                {!isWalletConnected && <input type="submit" id="submit" className="btn-main" value={"Connect wallet"} onClick={() => navigate("/wallet")} />}
               </div>
             </form>
-          </div>          
+          </div>
         </div>
       </section>
 

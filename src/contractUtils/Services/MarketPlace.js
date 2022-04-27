@@ -1,18 +1,18 @@
-import { Contract } from "ethers";
+import { Contract, utils } from "ethers";
 import MarketPlaceABI from "../Abi/MarketPlace.json";
 
 export const MarketPlaceABIInterface = new utils.Interface(MarketPlaceABI);
-const MarketPlaceContractAddress = "0x410A1ce670D28C40781d3c3bE9c45259290399FF";
+const MarketPlaceContractAddress = "0x591B7459Fe25AB3263aef2b088A6621D6280D790";
 
 export const MarketPlaceContract = new Contract(MarketPlaceContractAddress, MarketPlaceABIInterface);
 
-export const getListedNFTsCall = (Contract) => ({
+export const totalNFTsOnMarketplace = (Contract) => ({
   abi: MarketPlaceABIInterface,
   address: Contract,
-  method: "getListedNFT",
+  method: "getListedNFTsOnMarketplaceLength",
 });
 
-export const getListedNFTsCall = (Contract, nftAddress) => ({
+export const getListedNFTCall = (Contract, nftAddress) => ({
   abi: MarketPlaceABIInterface,
   address: Contract,
   method: "getListedTokenIds",
@@ -61,6 +61,13 @@ export const getPlatformFee = (Contract) => ({
   abi: MarketPlaceABIInterface,
   address: Contract,
   method: "platformFee",
+});
+
+export const getListedNFTs = (contract, tokenId) => ({
+  abi: MarketPlaceABIInterface,
+  address: contract,
+  method: "listedNFTsOnMarketplace",
+  args: [tokenId],
 });
 
 export const buyTokenFunc = "buyToken";
