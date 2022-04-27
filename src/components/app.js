@@ -72,7 +72,7 @@ const app = () => (
                 <Helpcenter path="/helpcenter" />
                 <Rangking path="/rangking" />
                 <Colection path="/colection" />
-                <ItemDetail path="/ItemDetail" />
+                <ItemDetail path="/itemDetail/:id/:id" />
                 <Author path="/Author" />
                 <Wallet path="/wallet" />
                 <Login path="/login" />

@@ -73,11 +73,26 @@ export const getNFTDetails = (nftAddress, tokenId) => {
     });
 };
 
-export const getNumberOfListedNFT = (nftAddress, tokenId) => {
+export const getPeakAddress = () => {
     return new Promise((resolve, reject) => {
         if (web3 && web3.currentProvider) {
             MarketplaceContract.methods
-                .getNumberOfListedNFT()
+                .getPeakAddress()
+                .call()
+                .then((data) => {
+                    resolve(data);
+                })
+                .catch((error) => reject(error));
+        } else {
+            resolve();
+        }
+    });
+};
+export const getNumberOfListedNFT = () => {
+    return new Promise((resolve, reject) => {
+        if (web3 && web3.currentProvider) {
+            MarketplaceContract.methods
+                .getNumberOfListedNFTs()
                 .call()
                 .then((data) => {
                     resolve(data);

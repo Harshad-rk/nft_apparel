@@ -1,7 +1,7 @@
 import Web3 from "web3";
 
 import { NFTBaseABI } from "../contracts/NFTBase";
-import { NFTAddress } from "../../config/index";
+import { NFTAddress, MarketPlaceAddress } from "../../config/index";
 let web3, NFTContract;
 
 web3 = new Web3(window.ethereum);
@@ -23,12 +23,29 @@ export const approveToken = (myAddress, spender, tokenId, nftAddress) => {
     });
 };
 
-export const setApproveForAllToken = (myAddress, spender, nftAddress) => {
+export const tokenAllowance = (nftAddress, spender, myAddress) => {
     return new Promise((resolve, reject) => {
         let nftContract = new web3.eth.Contract(NFTBaseABI, nftAddress);
         if (web3 && web3.currentProvider) {
             nftContract.methods
-                .setApproveForAll(spender, true)
+                .isApprovedForAll(myAddress, spender)
+                .call({ from: myAddress })
+                .then((data) => {
+                    resolve(data);
+                })
+                .catch((error) => reject(error));
+        } else {
+            resolve();
+        }
+    });
+};
+
+export const setApproveForAllToken = (myAddress, nftAddress) => {
+    return new Promise((resolve, reject) => {
+        let nftContract = new web3.eth.Contract(NFTBaseABI, nftAddress);
+        if (web3 && web3.currentProvider) {
+            nftContract.methods
+                .setApprovalForAll(MarketPlaceAddress, true)
                 .send({ from: myAddress })
                 .then((data) => {
                     resolve(data);
@@ -40,9 +57,9 @@ export const setApproveForAllToken = (myAddress, spender, nftAddress) => {
     });
 };
 
-export const mintToken = (myAddress, uri, nftAddress) => {
+export const mintToken = (myAddress, uri) => {
     return new Promise((resolve, reject) => {
-        let nftContract = new web3.eth.Contract(NFTBaseABI, nftAddress);
+        let nftContract = new web3.eth.Contract(NFTBaseABI, NFTAddress);
         if (web3 && web3.currentProvider) {
             nftContract.methods
                 .mint(myAddress, uri)
@@ -111,7 +128,7 @@ export const tokenSymbol = (nftAddress) => {
     });
 };
 
-export const tokenOwner = (tokenId) => {
+export const tokenOwner = (nftAddress, tokenId) => {
     return new Promise((resolve, reject) => {
         let nftContract = new web3.eth.Contract(NFTBaseABI, nftAddress);
 

@@ -222,7 +222,11 @@ const Header = function () {
                                 className="btn-main"
                                 onClick={deactivate}
                             >
-                                {account}
+                                {account
+                                    ? account.slice(0, 6) +
+                                      "...." +
+                                      account.slice(-4)
+                                    : ""}
                             </NavLink>
                         ) : (
                             <NavLink to="/wallet" className="btn-main">

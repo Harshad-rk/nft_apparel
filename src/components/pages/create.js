@@ -18,6 +18,7 @@ import {
     listTokenToMarketplaceFunc,
     MarketPlaceContract,
 } from "../../contractUtils/Services/MarketPlace";
+import { listTokenToMarketplace } from "../../utility/contractMethods/Marketplace";
 import { utils } from "ethers";
 import {
     tokenName,
@@ -25,8 +26,11 @@ import {
     tokenURI,
     mintToken,
     balanceOfToken,
+    setApproveForAllToken,
+    tokenAllowance,
 } from "../../utility/contractMethods/NFTBase";
 import { toast } from "react-toastify";
+import { MarketPlaceAddress } from "../../config";
 
 export default function Createpage() {
     const {
@@ -60,12 +64,12 @@ export default function Createpage() {
             royalties: "",
         },
         validationSchema: Yup.object().shape({
-            name: Yup.string().required("Field required"),
+            name: Yup.string().required("Name required"),
             description: Yup.string()
                 .min(10, "Description must be minimum 30 character")
-                .required("Field required"),
-            price: Yup.string().required("Field required"),
-            royalties: Yup.string().required("Field required"),
+                .required("Description required"),
+            price: Yup.string().required("Price required"),
+            royalties: Yup.string().required("Royalties required"),
         }),
         onSubmit: async (values) => {
             const body = {
@@ -85,11 +89,17 @@ export default function Createpage() {
                         pinata_secret_api_key: secretApiKey,
                     },
                 });
-                mintTokenFunction(
+                const mint = mintToken(
                     account,
                     `https://gateway.pinata.cloud/ipfs/${filePin?.data?.IpfsHash}`,
                 );
+                if (mint.status) {
+                    toast.success("token Minted");
+                } else {
+                    toast.error(mint.error.message);
+                }
             } catch (err) {
+                toast.error(err.message);
                 console.log(err);
             }
         },
@@ -116,16 +126,59 @@ export default function Createpage() {
             pricePeak: Yup.string().required("Field required"),
             setRoyalFee: Yup.string().required("Field required"),
         }),
-        onSubmit: (values) => {
-            ListNFT.send(
-                values?.nftAddres,
-                parseInt(values?.tokenID),
-                utils.parseUnits(values?.tokenAmout, 18),
-                utils.parseUnits(values?.priceMetis, 18),
-                utils.parseUnits(values?.pricePeak, 18),
-                Number(values?.setRoyalFee),
-                true,
-            );
+        onSubmit: async (values) => {
+            try {
+                const checkApprove = await tokenAllowance(
+                    values?.nftAddres,
+                    MarketPlaceAddress,
+                    account,
+                );
+                if (checkApprove) {
+                    const listToken = listTokenToMarketplace(
+                        values?.nftAddres,
+                        parseInt(values?.tokenID),
+                        utils.parseUnits(values?.tokenAmout, 18),
+                        utils.parseUnits(values?.priceMetis, 18),
+                        utils.parseUnits(values?.pricePeak, 18),
+                        Number(values?.setRoyalFee),
+                        true,
+                        account,
+                    );
+                    if (listToken.status) {
+                        toast.success("token Listed");
+                    } else {
+                        toast.error(listToken.error.message);
+                    }
+                } else {
+                    const approve = await setApproveForAllToken(
+                        account,
+                        values?.nftAddres,
+                    );
+                    if (approve.status) {
+                        toast.success("token Approved");
+
+                        const listToken = listTokenToMarketplace(
+                            values?.nftAddres,
+                            parseInt(values?.tokenID),
+                            utils.parseUnits(values?.tokenAmout, 18),
+                            utils.parseUnits(values?.priceMetis, 18),
+                            utils.parseUnits(values?.pricePeak, 18),
+                            Number(values?.setRoyalFee),
+                            true,
+                            account,
+                        );
+                        if (listToken.status) {
+                            toast.success("token Listed");
+                        } else {
+                            toast.error(listToken.error.message);
+                        }
+                    } else {
+                        toast.error(approve.error.message);
+                    }
+                }
+            } catch (error) {
+                toast.error(error.message);
+            }
         },
     });
 
@@ -335,7 +388,7 @@ export default function Createpage() {
                                     formikTouch?.description ||
                                     formikTouch?.price ||
                                     formikTouch?.royalties) &&
-                                    account && (
+                                    !account && (
                                         <h5 style={{ color: "red" }}>
                                             Inputs are required
                                         </h5>
@@ -564,7 +617,7 @@ export default function Createpage() {
                                     formikHanlderTouch?.priceMetis ||
                                     formikHanlderTouch?.pricePeak ||
                                     formikHanlderTouch?.setRoyalFee) &&
-                                    account && (
+                                    !account && (
                                         <h5 style={{ color: "red" }}>
                                             Inputs are required
                                         </h5>
