@@ -278,7 +278,10 @@ const ColumnNew = () => {
     return (
         <div className="row">
             {NftListData.map((nft, index) => (
-                <Link to={`/itemDetail/${nft.nftAddress}/${nft.tokenId}`}>
+                <Link
+                    to={`/itemDetail/${nft.nftAddress}/${nft.tokenId}`}
+                    key={index}
+                >
                     <div
                         key={index}
                         className="d-item col-lg-4 col-md-6 col-sm-6 col-xs-12 mb-4"
@@ -346,7 +349,7 @@ const ColumnNew = () => {
                     </div>
                 </Link>
             ))}
-            {nfts.length !== dummyData.length && (
+            {/* {nfts.length !== dummyData.length && (
                 <div className="col-lg-12">
                     <div className="spacer-single"></div>
                     <span
@@ -356,7 +359,7 @@ const ColumnNew = () => {
                         Load More
                     </span>
                 </div>
-            )}
+            )} */}
         </div>
     );
 };

@@ -42,34 +42,35 @@ const Colection = function () {
         if ((address, id, account, peakAddress)) {
             const getNoOfNft = async () => {
                 const nftTotalData = await getTokenList(address, id);
+
                 if (nftTotalData.status) {
                     setNftData(nftTotalData.data);
                 }
             };
             getNoOfNft();
         }
-    }, [address, account, id]);
+    }, [address, account, id, peakAddress]);
 
     useEffect(() => {
         if (account) {
-            const getNoOfNft = async () => {
+            const getNoOfNftd = async () => {
                 const nftTotalData = await getPeakAddress();
 
                 setPeakAddress(nftTotalData);
             };
-            getNoOfNft();
+            getNoOfNftd();
         }
     }, [account]);
 
     useEffect(() => {
-        if (account && peakAddress !== "") {
+        if (account && peakAddress) {
             const getUserDepositAllowBalance = async () => {
                 const allowanceRes = await tokenAllowance(
                     MarketPlaceAddress,
                     peakAddress,
                     account,
                 );
-                setUserDepositAllowBalance(allowanceRes / 10 ** 8);
+                setUserDepositAllowBalance(allowanceRes / 10 ** 18);
             };
             getUserDepositAllowBalance();
         }
