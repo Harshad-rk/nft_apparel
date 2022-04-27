@@ -1,52 +1,55 @@
 import React from "react";
-import { useEthers } from "@usedapp/core";
+// import { useEthers } from "@usedapp/core";
 import MakeQuerablePromise from "../../utils/querable-promise";
 import { useDispatch, useSelector } from "react-redux";
 import { setIsWalletConnected } from "../../redux/action/master-data-actions";
 
-const Wallet = () => {
-  const { account, activateBrowserWallet, deactivate } = useEthers();
-  const dispatch = useDispatch();
+const Wallet = ({ connectWallet }) => {
+    // const { account, activateBrowserWallet, deactivate } = useEthers();
+    // const dispatch = useDispatch();
 
-  const connectWallet = () => {
-    const activateBrowserWalletPromise = MakeQuerablePromise(activateBrowserWallet());
+    // const connectWallet = () => {
+    //   const activateBrowserWalletPromise = MakeQuerablePromise(activateBrowserWallet());
 
-    if (!account) {
-      activateBrowserWalletPromise.then(
-        function (res) {
-          if (activateBrowserWalletPromise.isFulfilled()) {
-            dispatch(setIsWalletConnected(true));
-          } else if (activateBrowserWalletPromise.isPending()) {
-          } else if (activateBrowserWalletPromise.isRejected()) {
-          }
-        },
-        function () {
-          dispatch(setIsWalletConnected(false));
-        }
-      );
-    } else if (account) {
-      deactivate();
-      dispatch(setIsWalletConnected(false));
-    }
-  };
+    //   if (!account) {
+    //     activateBrowserWalletPromise.then(
+    //       function (res) {
+    //         if (activateBrowserWalletPromise.isFulfilled()) {
+    //           dispatch(setIsWalletConnected(true));
+    //         } else if (activateBrowserWalletPromise.isPending()) {
+    //         } else if (activateBrowserWalletPromise.isRejected()) {
+    //         }
+    //       },
+    //       function () {
+    //         dispatch(setIsWalletConnected(false));
+    //       }
+    //     );
+    //   } else if (account) {
+    //     deactivate();
+    //     dispatch(setIsWalletConnected(false));
+    //   }
+    // };
 
-  return (
-    <div className="row">
-      <div className="col-lg-3 mb30">
-        <span
-          className="box-url"
-          onClick={() => {
-            connectWallet();
-          }}
-        >
-          <span className="box-url-label">Most Popular</span>
-          <img src="./img/wallet/1.png" alt="" className="mb20" />
-          <h4>Metamask</h4>
-          <p>Start exploring blockchain applications in seconds. Trusted by over 1 million users worldwide.</p>
-        </span>
-      </div>
+    return (
+        <div className="row">
+            <div className="col-lg-3 mb30">
+                <span
+                    className="box-url"
+                    onClick={() => {
+                        connectWallet();
+                    }}
+                >
+                    <span className="box-url-label">Most Popular</span>
+                    <img src="./img/wallet/1.png" alt="" className="mb20" />
+                    <h4>Metamask</h4>
+                    <p>
+                        Start exploring blockchain applications in seconds.
+                        Trusted by over 1 million users worldwide.
+                    </p>
+                </span>
+            </div>
 
-      {/* <div className="col-lg-3 mb30">
+            {/* <div className="col-lg-3 mb30">
         <span className="box-url">
           <img src="./img/wallet/2.png" alt="" className="mb20" />
           <h4>Bitski</h4>
@@ -102,7 +105,7 @@ const Wallet = () => {
           <p>Open source protocol for connecting decentralised applications to mobile wallets.</p>
         </span>
       </div> */}
-    </div>
-  );
+        </div>
+    );
 };
 export default Wallet;
