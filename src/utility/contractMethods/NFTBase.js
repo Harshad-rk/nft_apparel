@@ -40,6 +40,22 @@ export const tokenAllowance = (nftAddress, spender, myAddress) => {
     });
 };
 
+export const NfttokenAllowance = (nftAddress, spender, myAddress) => {
+    return new Promise((resolve, reject) => {
+        let nftContract = new web3.eth.Contract(NFTBaseABI, nftAddress);
+        if (web3 && web3.currentProvider) {
+            nftContract.methods
+                .isApprovedForAll(myAddress, spender)
+                .call({ from: myAddress })
+                .then((data) => {
+                    resolve(data);
+                })
+                .catch((error) => reject(error));
+        } else {
+            resolve();
+        }
+    });
+};
 export const setApproveForAllToken = (myAddress, nftAddress) => {
     return new Promise((resolve, reject) => {
         let nftContract = new web3.eth.Contract(NFTBaseABI, nftAddress);
@@ -152,6 +168,23 @@ export const tokenURI = (tokenId, nftAddress) => {
         if (web3 && web3.currentProvider) {
             nftContract.methods
                 .tokenURI(tokenId)
+                .call()
+                .then((data) => {
+                    resolve(data);
+                })
+                .catch((error) => reject(error));
+        } else {
+            resolve();
+        }
+    });
+};
+
+export const userToken = (address, nftAddress) => {
+    return new Promise((resolve, reject) => {
+        let nftContract = new web3.eth.Contract(NFTBaseABI, nftAddress);
+        if (web3 && web3.currentProvider) {
+            nftContract.methods
+                .tokenOwnedByUser(address)
                 .call()
                 .then((data) => {
                     resolve(data);

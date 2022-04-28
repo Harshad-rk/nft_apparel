@@ -57,6 +57,22 @@ export const listedNFTsOnMarketplace = (index) => {
     });
 };
 
+export const tokenListedByUser = (address) => {
+    return new Promise((resolve, reject) => {
+        if (web3 && web3.currentProvider) {
+            MarketplaceContract.methods
+                .getTokenListedByUser(address)
+                .call()
+                .then((data) => {
+                    resolve(data);
+                })
+                .catch((error) => reject(error));
+        } else {
+            resolve();
+        }
+    });
+};
+
 export const getNFTDetails = (nftAddress, tokenId) => {
     return new Promise((resolve, reject) => {
         if (web3 && web3.currentProvider) {

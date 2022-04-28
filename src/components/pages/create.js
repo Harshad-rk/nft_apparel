@@ -46,6 +46,9 @@ export default function Createpage() {
 
     // const { account } = useEthers();
     const [file, setFile] = useState();
+    const [createLoader, setCreateLoader] = useState(false);
+    const [listLoader, setListLoader] = useState(false);
+
     const [imgIpfsHashUrl, setImgIpfsHashURL] = useState();
     console.log("imgIpfsHashUrl: ", imgIpfsHashUrl);
     const navigate = useNavigate();
@@ -60,26 +63,20 @@ export default function Createpage() {
         initialValues: {
             name: "",
             description: "",
-            price: "",
-            royalties: "",
         },
         validationSchema: Yup.object().shape({
             name: Yup.string().required("Name required"),
             description: Yup.string()
                 .min(10, "Description must be minimum 30 character")
                 .required("Description required"),
-            price: Yup.string().required("Price required"),
-            royalties: Yup.string().required("Royalties required"),
         }),
         onSubmit: async (values) => {
+            setCreateLoader(true);
             const body = {
                 image: imgIpfsHashUrl,
                 name: values?.name,
                 description: values?.description,
-                price: values?.price,
-                royalties: values?.royalties,
             };
-
             const url = `https://api.pinata.cloud/pinning/pinJSONToIPFS`;
 
             try {
@@ -89,7 +86,7 @@ export default function Createpage() {
                         pinata_secret_api_key: secretApiKey,
                     },
                 });
-                const mint = mintToken(
+                const mint = await mintToken(
                     account,
                     `https://gateway.pinata.cloud/ipfs/${filePin?.data?.IpfsHash}`,
                 );
@@ -98,9 +95,11 @@ export default function Createpage() {
                 } else {
                     toast.error(mint.error.message);
                 }
+                setCreateLoader(false);
             } catch (err) {
                 toast.error(err.message);
                 console.log(err);
+                setCreateLoader(false);
             }
         },
     });
@@ -128,13 +127,14 @@ export default function Createpage() {
         }),
         onSubmit: async (values) => {
             try {
+                setListLoader(true);
                 const checkApprove = await tokenAllowance(
                     values?.nftAddres,
                     MarketPlaceAddress,
                     account,
                 );
                 if (checkApprove) {
-                    const listToken = listTokenToMarketplace(
+                    const listToken = await listTokenToMarketplace(
                         values?.nftAddres,
                         parseInt(values?.tokenID),
                         utils.parseUnits(values?.tokenAmout, 18),
@@ -146,6 +146,24 @@ export default function Createpage() {
                     );
                     if (listToken.status) {
                         toast.success("token Listed");
+                        axios
+                            .post("http://52.33.6.138:3000/user/create", {
+                                nftAddress: values?.nftAddres,
+                                tokenId: parseInt(values?.tokenID),
+                                isERC721: true,
+                                pricePeak: values?.pricePeak,
+                                priceMetis: values?.priceMetis,
+                                owner: account,
+                                isListed: true,
+                                isOnSale: true,
+                            })
+                            .then((res) => {
+                                console.log(
+                                    "%c 🥚 res: ",
+                                    "font-size:20px;background-color: #7F2B82;color:#fff;",
+                                    res,
+                                );
+                            });
                     } else {
                         toast.error(listToken.error.message);
                     }
@@ -157,7 +175,7 @@ export default function Createpage() {
                     if (approve.status) {
                         toast.success("token Approved");
 
-                        const listToken = listTokenToMarketplace(
+                        const listToken = await listTokenToMarketplace(
                             values?.nftAddres,
                             parseInt(values?.tokenID),
                             utils.parseUnits(values?.tokenAmout, 18),
@@ -169,6 +187,25 @@ export default function Createpage() {
                         );
                         if (listToken.status) {
                             toast.success("token Listed");
+                            // =================
+                            axios
+                                .post("http://52.33.6.138:3000/user/create", {
+                                    nftAddress: values?.nftAddres,
+                                    tokenId: parseInt(values?.tokenID),
+                                    isERC721: true,
+                                    pricePeak: values?.pricePeak,
+                                    priceMetis: values?.priceMetis,
+                                    owner: account,
+                                    isListed: true,
+                                    isOnSale: true,
+                                })
+                                .then((res) => {
+                                    console.log(
+                                        "%c 🥚 res: ",
+                                        "font-size:20px;background-color: #7F2B82;color:#fff;",
+                                        res,
+                                    );
+                                });
                         } else {
                             toast.error(listToken.error.message);
                         }
@@ -176,7 +213,9 @@ export default function Createpage() {
                         toast.error(approve.error.message);
                     }
                 }
+                setListLoader(false);
             } catch (error) {
+                setListLoader(false);
                 toast.error(error.message);
             }
         },
@@ -336,7 +375,7 @@ export default function Createpage() {
 
                                 <div className="spacer-10"></div>
 
-                                <h5>Price</h5>
+                                {/* <h5>Price</h5>
                                 <input
                                     type="text"
                                     name="item_price"
@@ -380,7 +419,7 @@ export default function Createpage() {
                                     }
                                     className="form-control"
                                     placeholder="suggested: 0, 10%, 20%, 30%. Maximum is 70%"
-                                />
+                                /> */}
 
                                 <div className="spacer-10"></div>
 
@@ -394,17 +433,30 @@ export default function Createpage() {
                                         </h5>
                                     )}
                                 <div className="spacer-10"></div>
-
-                                {account && (
+                                {createLoader ? (
                                     <input
                                         type="submit"
                                         id="submit"
                                         className="btn-main"
-                                        style={{ background: !file && "gray" }}
-                                        value={"Create Item"}
-                                        disabled={!file}
+                                        style={{ background: "gray" }}
+                                        value={"loading"}
+                                        disabled={true}
                                     />
+                                ) : (
+                                    account && (
+                                        <input
+                                            type="submit"
+                                            id="submit"
+                                            className="btn-main"
+                                            style={{
+                                                background: !file && "gray",
+                                            }}
+                                            value={"Create Item"}
+                                            disabled={!file}
+                                        />
+                                    )
                                 )}
+
                                 {!account && (
                                     <input
                                         type="submit"
@@ -421,7 +473,7 @@ export default function Createpage() {
                     <div className="col-lg-3 col-sm-6 col-xs-12">
                         <h5>Preview item</h5>
                         <div className="nft__item m-0">
-                            <div className="de_countdown">
+                            {/* <div className="de_countdown">
                                 <Clock deadline="December, 30, 2021" />
                             </div>
                             <div className="author_list_pp">
@@ -433,7 +485,7 @@ export default function Createpage() {
                                     />
                                     <i className="fa fa-check"></i>
                                 </span>
-                            </div>
+                            </div> */}
                             <div className="nft__item_wrap">
                                 <span>
                                     <img
@@ -451,15 +503,15 @@ export default function Createpage() {
                                 <span>
                                     <h4>Pinky Ocean</h4>
                                 </span>
-                                <div className="nft__item_price">
+                                {/* <div className="nft__item_price">
                                     0.08 ETH<span>1/20</span>
                                 </div>
                                 <div className="nft__item_action">
                                     <span>Place a bid</span>
-                                </div>
+                                </div> */}
                                 <div className="nft__item_like">
-                                    <i className="fa fa-heart"></i>
-                                    <span>50</span>
+                                    {/* <i className="fa fa-heart"></i>
+                                    <span>50</span> */}
                                 </div>
                             </div>
                         </div>
@@ -623,13 +675,23 @@ export default function Createpage() {
                                         </h5>
                                     )}
                                 <div className="spacer-10"></div>
-                                {account && (
+                                {listLoader ? (
                                     <input
                                         type="submit"
                                         id="submit"
                                         className="btn-main"
-                                        value={"List NFT"}
+                                        value={"Loading"}
+                                        style={{ background: "gray" }}
                                     />
+                                ) : (
+                                    account && (
+                                        <input
+                                            type="submit"
+                                            id="submit"
+                                            className="btn-main"
+                                            value={"List NFT"}
+                                        />
+                                    )
                                 )}
                                 {!account && (
                                     <input

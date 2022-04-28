@@ -2,12 +2,11 @@ import React, { Component, useState, useEffect } from "react";
 import Clock from "../components/Clock";
 import Footer from "../components/footer";
 import { createGlobalStyle } from "styled-components";
-import { useLocation } from "@reach/router";
+import { useLocation, useNavigate } from "@reach/router";
 import { useWeb3React } from "@web3-react/core";
-import { tokenURI } from "../../utility/contractMethods/NFTBase";
 import {
     getNumberOfListedNFT,
-    listedNFTsOnMarketplace,
+    listTokenToMarketplace,
     getNFTDetails,
     buyToken,
     getPeakAddress,
@@ -18,7 +17,21 @@ import {
     tokenApprove,
     tokenAllowance,
 } from "../../utility/contractMethods/token";
+import {
+    tokenName,
+    tokenSymbol,
+    tokenURI,
+    mintToken,
+    balanceOfToken,
+    setApproveForAllToken,
+    NfttokenAllowance,
+} from "../../utility/contractMethods/NFTBase";
 import { MarketPlaceAddress } from "../../config";
+import { Button, Modal } from "react-bootstrap";
+import { useFormik } from "formik";
+import { utils } from "ethers";
+
+import * as Yup from "yup";
 
 const GlobalStyles = createGlobalStyle`
   header#myHeader.navbar.white {
@@ -37,11 +50,22 @@ const Colection = function () {
     const [peakAddress, setPeakAddress] = useState(null);
     const [changeState, setChangeState] = useState(false);
     const [userDepositAllowBalance, setUserDepositAllowBalance] = useState(0);
+    const [show, setShow] = useState(false);
+    const [listLoader, setListLoader] = useState(false);
+    const navigate = useNavigate();
+
+    const handleClose = () => setShow(false);
+    const handleShow = () => setShow(true);
 
     useEffect(() => {
         if ((address, id, account, peakAddress)) {
             const getNoOfNft = async () => {
                 const nftTotalData = await getTokenList(address, id);
+                console.log(
+                    "%c 🥔 nftTotalData: ",
+                    "font-size:20px;background-color: #FFDD4D;color:#fff;",
+                    nftTotalData,
+                );
 
                 if (nftTotalData.status) {
                     setNftData(nftTotalData.data);
@@ -79,7 +103,11 @@ const Colection = function () {
     const getTokenList = (address, id) => {
         return new Promise(async (resolve) => {
             let NFTAddressData = await getNFTDetails(address, id);
+            if (NFTAddressData.nftAddress == NFTAddressData.secondaryOwner) {
+                setIsListed(false);
+            }
             let nftData = await tokenURI(id, address);
+
             if (nftData) {
                 const NftData = await axios.get(nftData);
 
@@ -173,6 +201,7 @@ const Colection = function () {
 
     const [openMenu, setOpenMenu] = React.useState(true);
     const [openMenu1, setOpenMenu1] = React.useState(false);
+    const [isListed, setIsListed] = React.useState(true);
     const handleBtnClick = (): void => {
         setOpenMenu(!openMenu);
         setOpenMenu1(false);
@@ -185,6 +214,113 @@ const Colection = function () {
         document.getElementById("Mainbtn1").classList.add("active");
         document.getElementById("Mainbtn").classList.remove("active");
     };
+    const formikHandler = useFormik({
+        initialValues: {
+            nftAddres: "",
+            tokenID: "",
+            tokenAmout: "",
+            priceMetis: "",
+            pricePeak: "",
+            setRoyalFee: "",
+        },
+        validationSchema: Yup.object().shape({
+            nftAddres: Yup.string().required("Field required"),
+            tokenID: Yup.string().required("Field required"),
+            tokenAmout: Yup.string().required("Field required"),
+            priceMetis: Yup.string().required("Field required"),
+            pricePeak: Yup.string().required("Field required"),
+            setRoyalFee: Yup.string().required("Field required"),
+        }),
+        onSubmit: async (values) => {
+            try {
+                setListLoader(true);
+                const checkApprove = await NfttokenAllowance(
+                    values?.nftAddres,
+                    MarketPlaceAddress,
+                    account,
+                );
+                if (checkApprove) {
+                    const listToken = await listTokenToMarketplace(
+                        values?.nftAddres,
+                        parseInt(values?.tokenID),
+                        utils.parseUnits(values?.tokenAmout, 18),
+                        utils.parseUnits(values?.priceMetis, 18),
+                        utils.parseUnits(values?.pricePeak, 18),
+                        Number(values?.setRoyalFee),
+                        true,
+                        account,
+                    );
+                    if (listToken.status) {
+                        toast.success("token Listed");
+                        // =================
+                        axios
+                            .post("http://52.33.6.138:3000/user/create", {
+                                nftAddress: values?.nftAddres,
+                                tokenId: parseInt(values?.tokenID),
+                                isERC721: true,
+                                pricePeak: values?.pricePeak,
+                                priceMetis: values?.priceMetis,
+                                owner: account,
+                                isListed: true,
+                                isOnSale: true,
+                            })
+                            .then((res) => {
+                                console.log(
+                                    "%c 🥚 res: ",
+                                    "font-size:20px;background-color: #7F2B82;color:#fff;",
+                                    res,
+                                );
+                            });
+                    } else {
+                        toast.error(listToken.error.message);
+                    }
+                } else {
+                    const approve = await setApproveForAllToken(
+                        account,
+                        values?.nftAddres,
+                    );
+                    if (approve.status) {
+                        toast.success("token Approved");
+                        const listToken = await listTokenToMarketplace(
+                            values?.nftAddres,
+                            parseInt(values?.tokenID),
+                            utils.parseUnits(values?.tokenAmout, 18),
+                            utils.parseUnits(values?.priceMetis, 18),
+                            utils.parseUnits(values?.pricePeak, 18),
+                            Number(values?.setRoyalFee),
+                            true,
+                            account,
+                        );
+                        if (listToken.status) {
+                            toast.success("token Listed");
+                            // =================
+                            axios.post("http://52.33.6.138:3000/user/create", {
+                                nftAddress: values?.nftAddres,
+                                tokenId: parseInt(values?.tokenID),
+                                isERC721: true,
+                                pricePeak: values?.pricePeak,
+                                priceMetis: values?.priceMetis,
+                                owner: account,
+                                isListed: true,
+                                isOnSale: true,
+                            });
+                        } else {
+                            toast.error(listToken.error.message);
+                        }
+                    } else {
+                        toast.error(approve.error.message);
+                    }
+                }
+                setListLoader(false);
+            } catch (error) {
+                setListLoader(false);
+                toast.error(error.message);
+            }
+        },
+    });
+    const formikHanlderTouch = formikHandler?.touched;
+    const formikHanlderErr = formikHandler?.errors;
+
     return (
         <div>
             <GlobalStyles />
@@ -218,30 +354,61 @@ const Colection = function () {
                             </div> */}
                             <p>{nftData?.description}</p>
                             <div className="de_tab" style={{ display: "flex" }}>
-                                <ul className="de_nav">
-                                    <span
-                                        onClick={() => buyMeticNftToken()}
-                                        className="btn-main lead m-auto"
-                                    >
-                                        Buy With Metis
-                                    </span>
-                                </ul>
-                                {userDepositAllowBalance == 0 ? (
-                                    <ul>
-                                        <span
-                                            onClick={() => approveToken()}
-                                            className="btn-main lead m-auto"
-                                        >
-                                            Approve peak
-                                        </span>
-                                    </ul>
+                                {isListed ? (
+                                    <>
+                                        <ul>
+                                            <span
+                                                onClick={() =>
+                                                    buyMeticNftToken()
+                                                }
+                                                className="btn-main lead m-auto"
+                                            >
+                                                Buy With Matic
+                                            </span>
+                                        </ul>
+
+                                        {userDepositAllowBalance == 0 ? (
+                                            <ul>
+                                                <span
+                                                    onClick={() =>
+                                                        approveToken()
+                                                    }
+                                                    className="btn-main lead m-auto"
+                                                >
+                                                    Approve peak
+                                                </span>
+                                            </ul>
+                                        ) : (
+                                            <ul>
+                                                <span
+                                                    onClick={() =>
+                                                        buyPeakNftToken()
+                                                    }
+                                                    className="btn-main lead m-auto"
+                                                >
+                                                    Buy with peak
+                                                </span>
+                                            </ul>
+                                        )}
+                                    </>
                                 ) : (
-                                    <ul>
+                                    <ul className="de_nav">
                                         <span
-                                            onClick={() => buyPeakNftToken()}
+                                            onClick={() => {
+                                                handleShow();
+                                                formikHandler.resetForm();
+                                                formikHandler.setFieldValue(
+                                                    "nftAddres",
+                                                    address,
+                                                );
+                                                formikHandler.setFieldValue(
+                                                    "tokenID",
+                                                    id,
+                                                );
+                                            }}
                                             className="btn-main lead m-auto"
                                         >
-                                            Buy with peak
+                                            Token List
                                         </span>
                                     </ul>
                                 )}
@@ -259,7 +426,13 @@ const Colection = function () {
                                     </span>
                                 </div> */}
                                 <div className="author_list_info">
-                                    <span>{nftData?.owner}</span>
+                                    <span>
+                                        {nftData?.owner &&
+                                        nftData?.owner !=
+                                            "0x0000000000000000000000000000000000000000"
+                                            ? nftData.owner
+                                            : account}
+                                    </span>
                                 </div>
                             </div>
                             <div className="spacer-40"></div>
@@ -476,8 +649,230 @@ const Colection = function () {
                 </div>
             </section>
 
+            <Modal show={show} onHide={handleClose} size="lg">
+                {/* <Modal.Header closeButton>
+                    <Modal.Title>List your NFT</Modal.Title>
+                </Modal.Header> */}
+                <Modal.Body>
+                    <div className="row">
+                        <div className="col-lg-7 offset-lg-1 mb-5">
+                            <form
+                                id="form-create-item"
+                                className="form-border"
+                                action="#"
+                                onSubmit={formikHandler.handleSubmit}
+                            >
+                                <div className="field-set">
+                                    <h1>List your NFT</h1>
+                                    <h5>NFT address</h5>
+                                    <input
+                                        type="text"
+                                        name="nftAddres"
+                                        style={{
+                                            border:
+                                                formikHanlderTouch?.nftAddres &&
+                                                formikHanlderErr?.nftAddres &&
+                                                "0.5px solid red",
+                                        }}
+                                        id="item_title"
+                                        value={formikHandler?.values?.nftAddres}
+                                        onChange={(e) =>
+                                            formikHandler.setFieldValue(
+                                                "nftAddres",
+                                                e.target.value.trim(),
+                                            )
+                                        }
+                                        className="form-control"
+                                        placeholder="e.g. 'nft address"
+                                    />
+                                    <div className="spacer-10"></div>
+
+                                    <h5>Token Id</h5>
+                                    <input
+                                        name="tokenID"
+                                        id="item_desc"
+                                        style={{
+                                            border:
+                                                formikHanlderTouch?.tokenID &&
+                                                formikHanlderErr?.tokenID &&
+                                                "0.5px solid red",
+                                        }}
+                                        value={formikHandler?.values?.tokenID}
+                                        onChange={(e) =>
+                                            formikHandler.setFieldValue(
+                                                "tokenID",
+                                                e.target.value.trim(),
+                                            )
+                                        }
+                                        className="form-control"
+                                        placeholder=""
+                                    ></input>
+
+                                    <div className="spacer-10"></div>
+
+                                    <h5>Token amount</h5>
+                                    <input
+                                        type="text"
+                                        name="tokenAmout"
+                                        id="item_price"
+                                        style={{
+                                            border:
+                                                formikHanlderTouch?.tokenAmout &&
+                                                formikHanlderErr?.tokenAmout &&
+                                                "0.5px solid red",
+                                        }}
+                                        value={
+                                            formikHandler?.values?.tokenAmout
+                                        }
+                                        onChange={(e) =>
+                                            formikHandler.setFieldValue(
+                                                "tokenAmout",
+                                                e.target.value.trim(),
+                                            )
+                                        }
+                                        className="form-control"
+                                        placeholder="enter price for one item (ETH)"
+                                    />
+
+                                    <div className="spacer-10"></div>
+
+                                    <h5>Price Metis</h5>
+                                    <input
+                                        name="priceMetis"
+                                        id="item_desc"
+                                        style={{
+                                            border:
+                                                formikHanlderTouch?.priceMetis &&
+                                                formikHanlderErr?.priceMetis &&
+                                                "0.5px solid red",
+                                        }}
+                                        value={
+                                            formikHandler?.values?.priceMetis
+                                        }
+                                        onChange={(e) =>
+                                            formikHandler.setFieldValue(
+                                                "priceMetis",
+                                                e.target.value.trim(),
+                                            )
+                                        }
+                                        className="form-control"
+                                        placeholder=""
+                                    ></input>
+
+                                    <div className="spacer-10"></div>
+
+                                    <h5>Price Peak</h5>
+                                    <input
+                                        name="pricePeak"
+                                        id="item_desc"
+                                        style={{
+                                            border:
+                                                formikHanlderTouch?.pricePeak &&
+                                                formikHanlderErr?.pricePeak &&
+                                                "0.5px solid red",
+                                        }}
+                                        value={formikHandler?.values?.pricePeak}
+                                        onChange={(e) =>
+                                            formikHandler.setFieldValue(
+                                                "pricePeak",
+                                                e.target.value.trim(),
+                                            )
+                                        }
+                                        className="form-control"
+                                        placeholder=""
+                                    ></input>
+                                    <div className="spacer-10"></div>
+
+                                    <h5>Set royalty fee</h5>
+                                    <input
+                                        name="setRoyalFee"
+                                        id="item_desc"
+                                        style={{
+                                            border:
+                                                formikHanlderTouch?.setRoyalFee &&
+                                                formikHanlderErr?.setRoyalFee &&
+                                                "0.5px solid red",
+                                        }}
+                                        value={
+                                            formikHandler?.values?.setRoyalFee
+                                        }
+                                        onChange={(e) =>
+                                            formikHandler.setFieldValue(
+                                                "setRoyalFee",
+                                                e.target.value.trim(),
+                                            )
+                                        }
+                                        className="form-control"
+                                        placeholder=""
+                                    ></input>
+                                    <div className="spacer-10"></div>
+                                    {(formikHanlderTouch?.nftAddres ||
+                                        formikHanlderTouch?.tokenID ||
+                                        formikHanlderTouch?.tokenAmout ||
+                                        formikHanlderTouch?.priceMetis ||
+                                        formikHanlderTouch?.pricePeak ||
+                                        formikHanlderTouch?.setRoyalFee) &&
+                                        !account && (
+                                            <h5 style={{ color: "red" }}>
+                                                Inputs are required
+                                            </h5>
+                                        )}
+                                    <div className="spacer-10"></div>
+                                    <div
+                                        style={{
+                                            display: "-webkit-inline-flex",
+                                        }}
+                                    >
+                                        {listLoader ? (
+                                            <input
+                                                type="submit"
+                                                disabled
+                                                className="btn-main"
+                                                value={"Loading"}
+                                                style={{ background: "gray" }}
+                                            />
+                                        ) : account ? (
+                                            <input
+                                                type="submit"
+                                                id="submit"
+                                                className="btn-main"
+                                                value={"List NFT"}
+                                            />
+                                        ) : (
+                                            ""
+                                        )}
+                                        {!account && (
+                                            <input
+                                                type="submit"
+                                                id="submit"
+                                                className="btn-main"
+                                                value={"Connect wallet"}
+                                                onClick={() =>
+                                                    navigate("/wallet")
+                                                }
+                                            />
+                                        )}
+
+                                        <input
+                                            id="submit"
+                                            onClick={handleClose}
+                                            className="btn-main"
+                                            value={"Cancle"}
+                                            style={{
+                                                marginLeft: "10px",
+                                                background: "gray",
+                                            }}
+                                        />
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </Modal.Body>
+            </Modal>
             <Footer />
         </div>
     );
 };
+
 export default Colection;

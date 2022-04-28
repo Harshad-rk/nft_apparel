@@ -190,19 +190,19 @@ const ColumnNew = () => {
         },
     ];
 
-    useEffect(() => {
-        if (account) {
-            const getNoOfNft = async () => {
-                const nftTotalData = await getNumberOfListedNFT();
-                let updateData = [];
-                for (var i = 0; i < nftTotalData; i++) {
-                    updateData.push(i);
-                }
-                setTotalNft(updateData);
-            };
-            getNoOfNft();
-        }
-    }, [account]);
+    // useEffect(() => {
+    //     if (account) {
+    //         const getNoOfNft = async () => {
+    //             const nftTotalData = await getNumberOfListedNFT();
+    //             let updateData = [];
+    //             for (var i = 0; i < nftTotalData; i++) {
+    //                 updateData.push(i);
+    //             }
+    //             setTotalNft(updateData);
+    //         };
+    //         getNoOfNft();
+    //     }
+    // }, [account]);
 
     useEffect(() => {
         if (totalNFT.length > 0) {
@@ -222,30 +222,21 @@ const ColumnNew = () => {
 
     const getTokenList = (index) => {
         return new Promise(async (resolve) => {
-            let NFTAddressData = await listedNFTsOnMarketplace(index);
-            if (NFTAddressData) {
-                let nftData = await tokenURI(
-                    NFTAddressData.tokenId,
-                    NFTAddressData.nftAddress,
-                );
-                if (nftData) {
-                    const NftData = await axios.get(nftData);
-                    if (NftData && NftData.data) {
-                        resolve({
-                            status: true,
-                            data: {
-                                name: NftData.data.name,
-                                image: NftData.data.image,
-                                metisPrice: NFTAddressData.metisPrice,
-                                peakPrice: NFTAddressData.peakPrice,
-                                nftAddress: NFTAddressData.nftAddress,
-                                tokenId: NFTAddressData.tokenId,
-                                royalties: NftData.data.royalties,
-                            },
-                        });
-                    }
+            let nftData = await tokenURI(index.tokenId, index.nftAddress);
+            if (nftData) {
+                const NftData = await axios.get(nftData);
+                if (NftData && NftData.data) {
                     resolve({
-                        status: false,
+                        status: true,
+                        data: {
+                            name: NftData.data.name,
+                            image: NftData.data.image,
+                            metisPrice: index.priceMetis,
+                            peakPrice: index.pricePeak,
+                            nftAddress: index.nftAddress,
+                            tokenId: index.tokenId,
+                            royalties: NftData.data.royalties,
+                        },
                     });
                 }
                 resolve({
@@ -274,17 +265,34 @@ const ColumnNew = () => {
             setHeight(img.offsetHeight);
         }
     }
+    const [page, setPage] = useState(1);
+    const [sizePerPage, setSizePerPage] = useState(10);
 
+    const getNFTList = () => {
+        axios
+            .get("http://52.33.6.138:3000/user/token", {
+                params: { page: page, sizePerPage: sizePerPage },
+            })
+            .then((res) => {
+                setTotalNft(res.data.data.docs);
+            });
+    };
+    useEffect(() => {
+        getNFTList();
+    }, [page, sizePerPage]);
+    const onLoadMore = () => {
+        setPage(page + 1);
+    };
     return (
         <div className="row">
             {NftListData.map((nft, index) => (
-                <Link
-                    to={`/itemDetail/${nft.nftAddress}/${nft.tokenId}`}
+                <div
                     key={index}
+                    className="d-item col-lg-4 col-md-6 col-sm-6 col-xs-12 mb-4"
                 >
-                    <div
+                    <Link
+                        to={`/itemDetail/${nft.nftAddress}/${nft.tokenId}`}
                         key={index}
-                        className="d-item col-lg-4 col-md-6 col-sm-6 col-xs-12 mb-4"
                     >
                         <div className="nft__item m-0">
                             {/* {nft.deadline && (
@@ -328,7 +336,7 @@ const ColumnNew = () => {
                                     <h4>{nft.name}</h4>
                                 </span>
                                 <div className="nft__item_price">
-                                    {nft.metisPrice / 10 ** 18}
+                                    {nft.metisPrice}
                                     {/* <span>{nft.bid}</span> */}
                                 </div>
                                 <div className="nft__item_action">
@@ -346,8 +354,8 @@ const ColumnNew = () => {
                             </div> */}
                             </div>
                         </div>
-                    </div>
-                </Link>
+                    </Link>
+                </div>
             ))}
             {/* {nfts.length !== dummyData.length && (
                 <div className="col-lg-12">

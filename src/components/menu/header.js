@@ -211,6 +211,16 @@ const Header = function () {
                                         <span className="lines"></span>
                                     </NavLink>
                                 </div>
+                                {active && account ? (
+                                    <div className="navbar-item">
+                                        <NavLink to="/Author">
+                                            My Token
+                                            <span className="lines"></span>
+                                        </NavLink>
+                                    </div>
+                                ) : (
+                                    ""
+                                )}
                             </div>
                         </Breakpoint>
                     </BreakpointProvider>
