@@ -11,3 +11,14 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+.form-control:focus {
+  color: #f9faff!important;
+  background-color: #0e101a!important;
+  border-color: #86b7fe;
+  outline: 0;
+  box-shadow: 0 0 0 0.25rem rgb(13 110 253 / 25%);
+}
+.form-control[readonly] {
+  background-color: #14141f;
+  opacity: 1;
+}

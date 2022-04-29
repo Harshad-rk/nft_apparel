@@ -53,6 +53,7 @@ const Colection = function () {
     const [show, setShow] = useState(false);
     const [listLoader, setListLoader] = useState(false);
     const navigate = useNavigate();
+    const [isChange, setIsChange] = React.useState(false);
 
     const handleClose = () => setShow(false);
     const handleShow = () => setShow(true);
@@ -61,11 +62,6 @@ const Colection = function () {
         if ((address, id, account, peakAddress)) {
             const getNoOfNft = async () => {
                 const nftTotalData = await getTokenList(address, id);
-                console.log(
-                    "%c 🥔 nftTotalData: ",
-                    "font-size:20px;background-color: #FFDD4D;color:#fff;",
-                    nftTotalData,
-                );
 
                 if (nftTotalData.status) {
                     setNftData(nftTotalData.data);
@@ -73,7 +69,7 @@ const Colection = function () {
             };
             getNoOfNft();
         }
-    }, [address, account, id, peakAddress]);
+    }, [address, account, id, peakAddress, isChange]);
 
     useEffect(() => {
         if (account) {
@@ -84,7 +80,7 @@ const Colection = function () {
             };
             getNoOfNftd();
         }
-    }, [account]);
+    }, [account, isChange]);
 
     useEffect(() => {
         if (account && peakAddress) {
@@ -98,12 +94,16 @@ const Colection = function () {
             };
             getUserDepositAllowBalance();
         }
-    }, [account, peakAddress, changeState]);
+    }, [account, peakAddress, changeState, isChange]);
 
     const getTokenList = (address, id) => {
         return new Promise(async (resolve) => {
             let NFTAddressData = await getNFTDetails(address, id);
-            if (NFTAddressData.nftAddress == NFTAddressData.secondaryOwner) {
+
+            if (
+                NFTAddressData.nftAddress ==
+                "0x0000000000000000000000000000000000000000"
+            ) {
                 setIsListed(false);
             }
             let nftData = await tokenURI(id, address);
@@ -118,8 +118,8 @@ const Colection = function () {
                             name: NftData.data.name,
                             image: NftData.data.image,
                             description: NftData.data.description,
-                            metisPrice: NFTAddressData.metisPrice,
-                            peakPrice: NFTAddressData.peakPrice,
+                            metisPrice: NFTAddressData.priceMetis,
+                            peakPrice: NFTAddressData.pricePeak,
                             nftAddress: NFTAddressData.nftAddress,
                             isAlreadyListed: NFTAddressData.isAlreadyListed,
                             tokenId: NFTAddressData.tokenId,
@@ -143,8 +143,8 @@ const Colection = function () {
     const buyMeticNftToken = async () => {
         try {
             const buyTokenData = await buyToken(
-                nftData.nftAddress,
-                nftData.tokenId,
+                address,
+                id,
                 0,
                 true,
                 true,
@@ -152,7 +152,7 @@ const Colection = function () {
                 account,
             );
             if (buyTokenData.status) {
-                toast.success("token Buy SuccessFully");
+                toast.success("Token Buy Successfully");
             } else {
                 toast.error(buyTokenData.error.message);
             }
@@ -172,7 +172,7 @@ const Colection = function () {
                 account,
             );
             if (buyTokenData.status) {
-                toast.success("token Buy SuccessFully");
+                toast.success("Token Buy Successfully");
             } else {
                 toast.error(buyTokenData.error.message);
             }
@@ -189,7 +189,7 @@ const Colection = function () {
                 account,
             );
             if (calAllowToken.status === true) {
-                toast.success("token Approved");
+                toast.success("Token Approved");
                 setChangeState(!changeState);
             } else {
                 toast.error(calAllowToken.error.message);
@@ -202,6 +202,7 @@ const Colection = function () {
     const [openMenu, setOpenMenu] = React.useState(true);
     const [openMenu1, setOpenMenu1] = React.useState(false);
     const [isListed, setIsListed] = React.useState(true);
+
     const handleBtnClick = (): void => {
         setOpenMenu(!openMenu);
         setOpenMenu1(false);
@@ -251,7 +252,11 @@ const Colection = function () {
                         account,
                     );
                     if (listToken.status) {
-                        toast.success("token Listed");
+                        toast.success("Token Listed");
+                        formikHandler.resetForm();
+                        handleClose();
+                        setIsListed(false);
+                        setIsChange(!isChange);
                         // =================
                         axios
                             .post("http://52.33.6.138:3000/user/create", {
@@ -270,6 +275,7 @@ const Colection = function () {
                                     "font-size:20px;background-color: #7F2B82;color:#fff;",
                                     res,
                                 );
+                                navigate("/explore");
                             });
                     } else {
                         toast.error(listToken.error.message);
@@ -280,7 +286,7 @@ const Colection = function () {
                         values?.nftAddres,
                     );
                     if (approve.status) {
-                        toast.success("token Approved");
+                        toast.success("Token Approved");
                         const listToken = await listTokenToMarketplace(
                             values?.nftAddres,
                             parseInt(values?.tokenID),
@@ -292,7 +298,11 @@ const Colection = function () {
                             account,
                         );
                         if (listToken.status) {
-                            toast.success("token Listed");
+                            toast.success("Token Listed");
+                            formikHandler.resetForm();
+                            handleClose();
+                            setIsListed(false);
+                            setIsChange(!isChange);
                             // =================
                             axios.post("http://52.33.6.138:3000/user/create", {
                                 nftAddress: values?.nftAddres,
@@ -304,6 +314,7 @@ const Colection = function () {
                                 isListed: true,
                                 isOnSale: true,
                             });
+                            navigate("/explore");
                         } else {
                             toast.error(listToken.error.message);
                         }
@@ -332,6 +343,7 @@ const Colection = function () {
                             src={nftData?.image}
                             className="img-fluid img-rounded mb-sm-30"
                             alt=""
+                            style={{ maxHeight: "450px" }}
                         />
                     </div>
                     <div className="col-md-6">
@@ -363,7 +375,7 @@ const Colection = function () {
                                                 }
                                                 className="btn-main lead m-auto"
                                             >
-                                                Buy With Matic
+                                                Buy With Eth
                                             </span>
                                         </ul>
 
@@ -375,7 +387,7 @@ const Colection = function () {
                                                     }
                                                     className="btn-main lead m-auto"
                                                 >
-                                                    Approve peak
+                                                    Approve Peak
                                                 </span>
                                             </ul>
                                         ) : (
@@ -386,7 +398,7 @@ const Colection = function () {
                                                     }
                                                     className="btn-main lead m-auto"
                                                 >
-                                                    Buy with peak
+                                                    Buy with Peak
                                                 </span>
                                             </ul>
                                         )}
@@ -408,7 +420,7 @@ const Colection = function () {
                                             }}
                                             className="btn-main lead m-auto"
                                         >
-                                            Token List
+                                            List Token For Sale
                                         </span>
                                     </ul>
                                 )}
@@ -684,6 +696,7 @@ const Colection = function () {
                                         }
                                         className="form-control"
                                         placeholder="e.g. 'nft address"
+                                        readOnly
                                     />
                                     <div className="spacer-10"></div>
 
@@ -706,6 +719,7 @@ const Colection = function () {
                                         }
                                         className="form-control"
                                         placeholder=""
+                                        readOnly
                                     ></input>
 
                                     <div className="spacer-10"></div>
@@ -731,7 +745,8 @@ const Colection = function () {
                                             )
                                         }
                                         className="form-control"
-                                        placeholder="enter price for one item (ETH)"
+                                        type="number"
+                                        placeholder=" Enter token amount of ERC1155, if it's ERC721 enter 0"
                                     />
 
                                     <div className="spacer-10"></div>
@@ -757,6 +772,7 @@ const Colection = function () {
                                         }
                                         className="form-control"
                                         placeholder=""
+                                        type="number"
                                     ></input>
 
                                     <div className="spacer-10"></div>
@@ -780,10 +796,11 @@ const Colection = function () {
                                         }
                                         className="form-control"
                                         placeholder=""
+                                        type="number"
                                     ></input>
                                     <div className="spacer-10"></div>
 
-                                    <h5>Set royalty fee</h5>
+                                    <h5>Set royalty fee (In Percentage)</h5>
                                     <input
                                         name="setRoyalFee"
                                         id="item_desc"
@@ -804,6 +821,7 @@ const Colection = function () {
                                         }
                                         className="form-control"
                                         placeholder=""
+                                        type="number"
                                     ></input>
                                     <div className="spacer-10"></div>
                                     {(formikHanlderTouch?.nftAddres ||
@@ -828,7 +846,7 @@ const Colection = function () {
                                                 type="submit"
                                                 disabled
                                                 className="btn-main"
-                                                value={"Loading"}
+                                                value={"Loading..."}
                                                 style={{ background: "gray" }}
                                             />
                                         ) : account ? (
@@ -857,7 +875,7 @@ const Colection = function () {
                                             id="submit"
                                             onClick={handleClose}
                                             className="btn-main"
-                                            value={"Cancle"}
+                                            value={"Cancel"}
                                             style={{
                                                 marginLeft: "10px",
                                                 background: "gray",

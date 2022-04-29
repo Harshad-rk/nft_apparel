@@ -91,7 +91,9 @@ export default function Createpage() {
                     `https://gateway.pinata.cloud/ipfs/${filePin?.data?.IpfsHash}`,
                 );
                 if (mint.status) {
-                    toast.success("token Minted");
+                    formik.resetForm();
+                    setImgIpfsHashURL("");
+                    toast.success("Token Minted");
                 } else {
                     toast.error(mint.error.message);
                 }
@@ -145,7 +147,8 @@ export default function Createpage() {
                         account,
                     );
                     if (listToken.status) {
-                        toast.success("token Listed");
+                        toast.success("Token Listed");
+                        formikHandler.resetForm();
                         axios
                             .post("http://52.33.6.138:3000/user/create", {
                                 nftAddress: values?.nftAddres,
@@ -173,7 +176,8 @@ export default function Createpage() {
                         values?.nftAddres,
                     );
                     if (approve.status) {
-                        toast.success("token Approved");
+                        toast.success("Token Approved");
+                        formikHandler.resetForm();
 
                         const listToken = await listTokenToMarketplace(
                             values?.nftAddres,
@@ -186,7 +190,7 @@ export default function Createpage() {
                             account,
                         );
                         if (listToken.status) {
-                            toast.success("token Listed");
+                            toast.success("Token Listed");
                             // =================
                             axios
                                 .post("http://52.33.6.138:3000/user/create", {
@@ -422,6 +426,11 @@ export default function Createpage() {
                                 /> */}
 
                                 <div className="spacer-10"></div>
+                                {imgIpfsHashUrl && imgIpfsHashUrl !== "" && (
+                                    <h5>IPFS Hash</h5>
+                                )}
+                                <h5>{imgIpfsHashUrl}</h5>
+                                <div className="spacer-10"></div>
 
                                 {(formikTouch?.name ||
                                     formikTouch?.description ||
@@ -439,7 +448,7 @@ export default function Createpage() {
                                         id="submit"
                                         className="btn-main"
                                         style={{ background: "gray" }}
-                                        value={"loading"}
+                                        value={"Loading..."}
                                         disabled={true}
                                     />
                                 ) : (
@@ -500,19 +509,25 @@ export default function Createpage() {
                                 </span>
                             </div>
                             <div className="nft__item_info">
+                                <span>Title</span>
                                 <span>
-                                    <h4>Pinky Ocean</h4>
+                                    <h4>{formik.values.name}</h4>
+                                </span>
+                                <span>Description</span>
+
+                                <span>
+                                    <h5>{formik.values.description}</h5>
                                 </span>
                                 {/* <div className="nft__item_price">
                                     0.08 ETH<span>1/20</span>
                                 </div>
                                 <div className="nft__item_action">
                                     <span>Place a bid</span>
-                                </div> */}
-                                <div className="nft__item_like">
-                                    {/* <i className="fa fa-heart"></i>
-                                    <span>50</span> */}
                                 </div>
+                                <div className="nft__item_like">
+                                    <i className="fa fa-heart"></i>
+                                    <span>50</span>
+                                </div> */}
                             </div>
                         </div>
                     </div>
@@ -592,7 +607,7 @@ export default function Createpage() {
                                         )
                                     }
                                     className="form-control"
-                                    placeholder="enter price for one item (ETH)"
+                                    placeholder="Enter token amount of ERC1155, if it's ERC721 enter 0"
                                 />
 
                                 <div className="spacer-10"></div>
@@ -642,7 +657,7 @@ export default function Createpage() {
                                 ></input>
                                 <div className="spacer-10"></div>
 
-                                <h5>Set royalty fee</h5>
+                                <h5>Set royalty fee (In Percentage)</h5>
                                 <input
                                     name="setRoyalFee"
                                     id="item_desc"
@@ -680,7 +695,7 @@ export default function Createpage() {
                                         type="submit"
                                         id="submit"
                                         className="btn-main"
-                                        value={"Loading"}
+                                        value={"Loading..."}
                                         style={{ background: "gray" }}
                                     />
                                 ) : (

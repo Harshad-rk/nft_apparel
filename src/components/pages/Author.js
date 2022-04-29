@@ -156,9 +156,13 @@ const Colection = function () {
         setOpenMenu1(!openMenu1);
         setOpenMenu2(false);
         setOpenMenu(false);
-        document.getElementById("Mainbtn1").classList.add("active");
-        document.getElementById("Mainbtn").classList.remove("active");
-        document.getElementById("Mainbtn2").classList.remove("active");
+
+        document.getElementById("Mainbtn1") &&
+            document.getElementById("Mainbtn1").classList.add("active");
+        document.getElementById("Mainbtn") &&
+            document.getElementById("Mainbtn").classList.remove("active");
+        document.getElementById("Mainbtn2") &&
+            document.getElementById("Mainbtn2").classList.remove("active");
     };
     const handleBtnClick2 = (): void => {
         setOpenMenu2(!openMenu2);
@@ -180,32 +184,32 @@ const Colection = function () {
                         <div className="d_profile de-flex">
                             <div className="de-flex-col">
                                 <div className="profile_avatar">
-                                    {/* <img
+                                    <img
                                         src="./img/author_single/author_thumbnail.jpg"
                                         alt=""
                                     />
-                                    <i className="fa fa-check"></i> */}
+                                    <i className="fa fa-check"></i>
                                     <div className="profile_name">
                                         <h4>
-                                            <span className="profile_username">
+                                            {/* <span className="profile_username">
                                                 {account}
-                                            </span>
+                                            </span> */}
 
                                             {/* <span className="profile_username">
                                                 @monicaaa
-                                            </span>
+                                            </span> */}
                                             <span
                                                 id="wallet"
                                                 className="profile_wallet"
                                             >
                                                 {account}
-                                            </span> */}
-                                            {/* <button
+                                            </span>
+                                            <button
                                                 id="btn_copy"
                                                 title="Copy Text"
                                             >
                                                 Copy
-                                            </button> */}
+                                            </button>
                                         </h4>
                                     </div>
                                 </div>
@@ -240,9 +244,9 @@ const Colection = function () {
                                         Created
                                     </span>
                                 </li>
-                                <li id="Mainbtn2" className="">
+                                {/* <li id="Mainbtn2" className="">
                                     <span onClick={handleBtnClick2}>Liked</span>
-                                </li>
+                                </li> */}
                             </ul>
                         </div>
                     </div>
